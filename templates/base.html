@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}VaultAI{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600&family=DM+Sans:wght@400;500;600&family=DM+Mono&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── CSS Variables (Color Palette) ── */
+    :root {
+      --bg:       #0d0b09;
+      --surface:  #131108;
+      --card:     #181510;
+      --inset:    #0a0906;
+      --gold:     #e8a820;
+      --gold-dim: #c48c14;
+      --line:     rgba(255, 220, 120, 0.10);
+      --line-md:  rgba(255, 220, 120, 0.20);
+      --text:     #f0e8d8;
+      --text-2:   #b8a890;
+      --text-3:   #6e6050;
+      --green:    #6db98c;
+      --red:      #d4695a;
+      --amber:    #d49a3a;
+    }
+
+    /* ── Reset ── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 7px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-gold {
+      background: var(--gold);
+      color: #0d0b09;
+      font-weight: 600;
+    }
+    .btn-gold:hover { background: #f0b428; transform: translateY(-1px); }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--line-md);
+      color: var(--text-2);
+    }
+    .btn-outline:hover { border-color: var(--gold); color: var(--text); }
+
+    .btn-danger {
+      background: rgba(212, 105, 90, 0.15);
+      border: 1px solid rgba(212, 105, 90, 0.3);
+      color: var(--red);
+    }
+    .btn-danger:hover { background: rgba(212, 105, 90, 0.25); }
+
+    /* ── Form inputs ── */
+    .field {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--inset);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .field:focus { border-color: var(--gold-dim); }
+    .field::placeholder { color: var(--text-3); }
+    select.field option { background: var(--card); }
+
+    .label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    /* ── Modal backdrop ── */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-bg.open { display: flex; }
+
+    .modal-box {
+      background: var(--card);
+      border: 1px solid var(--line-md);
+      border-radius: 12px;
+      padding: 28px;
+      width: 100%;
+      max-width: 460px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    /* ── Toast notification ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 999;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    #toast.show { display: flex; }
+    #toast.ok  { background: rgba(109,185,140,0.15); border:1px solid rgba(109,185,140,0.3); color: var(--green); }
+    #toast.err { background: rgba(212,105,90,0.15);  border:1px solid rgba(212,105,90,0.3);  color: var(--red);   }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--line-md); border-radius: 2px; }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Flash messages from Flask -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div id="flask-flash" class="toast-static {{ category }}">{{ message }}</div>
+        <style>
+          .toast-static {
+            position: fixed; bottom: 24px; right: 24px;
+            padding: 12px 18px; border-radius: 8px;
+            font-size: 14px; font-weight: 500; z-index: 999;
+          }
+          .toast-static.success { background:rgba(109,185,140,0.15); border:1px solid rgba(109,185,140,0.3); color:var(--green); }
+          .toast-static.error   { background:rgba(212,105,90,0.15);  border:1px solid rgba(212,105,90,0.3);  color:var(--red);   }
+        </style>
+        <script>setTimeout(()=>{ const e=document.getElementById('flask-flash'); if(e) e.remove(); }, 3500);</script>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+
+  <!-- Toast element (used by JavaScript) -->
+  <div id="toast"></div>
+
+  <script>
+    // Show a toast message
+    function showToast(msg, type='ok') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'show ' + type;
+      setTimeout(() => { t.className = ''; }, 3000);
+    }
+
+    // Copy text to clipboard
+    async function copyText(text, label) {
+      await navigator.clipboard.writeText(text);
+      showToast(label + ' copied!', 'ok');
+    }
+
+    // Toggle password visibility
+    function togglePassword(inputId) {
+      const input = document.getElementById(inputId);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+{% block title %}Verify OTP — VaultAI{% endblock %}
+
+{% block extra_css %}
+<style>
+  .otp-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .otp-box {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .otp-icon {
+    width: 56px;
+    height: 56px;
+    border: 1px solid var(--line-md);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    background: rgba(232,168,32,0.06);
+  }
+
+  .otp-title {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 400;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .otp-subtitle {
+    text-align: center;
+    color: var(--text-3);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  .otp-email {
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  /* Big OTP input boxes */
+  .otp-inputs {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .otp-digit {
+    width: 52px;
+    height: 60px;
+    background: var(--inset);
+    border: 1px solid var(--line-md);
+    border-radius: 10px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    color: var(--gold);
+    outline: none;
+    transition: border-color 0.2s;
+    caret-color: var(--gold);
+  }
+
+  .otp-digit:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(232,168,32,0.1);
+  }
+
+  /* Timer */
+  .timer {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-3);
+    margin-bottom: 20px;
+  }
+  .timer span {
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-weight: 600;
+  }
+
+  /* Resend button */
+  .resend-btn {
+    background: none;
+    border: none;
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .resend-btn:disabled {
+    color: var(--text-3);
+    text-decoration: none;
+    cursor: not-allowed;
+  }
+
+  .back-link {
+    display: block;
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text-3);
+    text-decoration: none;
+  }
+  .back-link:hover { color: var(--text-2); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="otp-page">
+  <div class="otp-box">
+
+    <!-- Icon -->
+    <div class="otp-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e8a820" stroke-width="1.8">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.9a16 16 0 0 0 6 6l.97-.97a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16z"/>
+      </svg>
+    </div>
+
+    <h1 class="otp-title">Check your email</h1>
+    <p class="otp-subtitle">
+      We sent a 6-digit verification code to<br>
+      <span class="otp-email">{{ email }}</span>
+    </p>
+
+    <div class="card" style="padding:28px">
+
+      <form method="POST" action="/verify-otp" id="otpForm">
+        <!-- 6 individual digit boxes -->
+        <div class="otp-inputs" id="otpInputs">
+          <input type="text" class="otp-digit" maxlength="1" id="d0" inputmode="numeric" />
+          <input type="text" class="otp-digit" maxlength="1" id="d1" inputmode="numeric" />
+          <input type="text" class="otp-digit" maxlength="1" id="d2" inputmode="numeric" />
+          <input type="text" class="otp-digit" maxlength="1" id="d3" inputmode="numeric" />
+          <input type="text" class="otp-digit" maxlength="1" id="d4" inputmode="numeric" />
+          <input type="text" class="otp-digit" maxlength="1" id="d5" inputmode="numeric" />
+        </div>
+
+        <!-- Hidden input that holds the full 6-digit code -->
+        <input type="hidden" name="otp" id="otpHidden" />
+
+        <button type="submit" class="btn btn-gold" id="verifyBtn"
+                style="width:100%;padding:12px;font-size:15px;justify-content:center">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          Verify & Login
+        </button>
+      </form>
+
+      <!-- Timer countdown -->
+      <div class="timer" style="margin-top:20px">
+        Code expires in <span id="timerDisplay">10:00</span>
+      </div>
+
+      <!-- Resend OTP -->
+      <div style="text-align:center">
+        <span style="font-size:13px;color:var(--text-3)">Didn't receive it? </span>
+        <button class="resend-btn" id="resendBtn" onclick="resendOtp()">Resend code</button>
+      </div>
+
+    </div>
+
+    <a href="/login" class="back-link">← Back to login</a>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── Auto-focus and auto-advance OTP digits ──
+  const digits = document.querySelectorAll('.otp-digit');
+
+  digits.forEach((input, index) => {
+    // When user types a digit, move to next box
+    input.addEventListener('input', function () {
+      // Only allow numbers
+      this.value = this.value.replace(/[^0-9]/g, '');
+
+      if (this.value && index < 5) {
+        digits[index + 1].focus();
+      }
+
+      // Update hidden input with full code
+      updateHidden();
+    });
+
+    // When user presses backspace, go back to previous box
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && !this.value && index > 0) {
+        digits[index - 1].focus();
+      }
+    });
+
+    // Allow pasting a full 6-digit code
+    input.addEventListener('paste', function (e) {
+      e.preventDefault();
+      const pasted = e.clipboardData.getData('text').replace(/[^0-9]/g, '');
+      if (pasted.length === 6) {
+        digits.forEach((d, i) => {
+          d.value = pasted[i] || '';
+        });
+        digits[5].focus();
+        updateHidden();
+      }
+    });
+  });
+
+  // Focus first box on load
+  digits[0].focus();
+
+  // Build the full 6-digit code from all boxes
+  function updateHidden() {
+    const code = Array.from(digits).map(d => d.value).join('');
+    document.getElementById('otpHidden').value = code;
+  }
+
+  // Validate before submitting
+  document.getElementById('otpForm').addEventListener('submit', function (e) {
+    const code = Array.from(digits).map(d => d.value).join('');
+    if (code.length !== 6) {
+      e.preventDefault();
+      showToast('Please enter all 6 digits', 'err');
+      return;
+    }
+    document.getElementById('verifyBtn').disabled = true;
+    document.getElementById('verifyBtn').textContent = 'Verifying…';
+  });
+
+  // ── Countdown timer (10 minutes) ──────────────
+  let seconds = 600; // 10 minutes = 600 seconds
+
+  const timerEl = document.getElementById('timerDisplay');
+  const resendBtn = document.getElementById('resendBtn');
+
+  const timer = setInterval(() => {
+    seconds--;
+
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    timerEl.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+
+    if (seconds <= 0) {
+      clearInterval(timer);
+      timerEl.textContent = '0:00';
+      timerEl.style.color = 'var(--red)';
+      showToast('OTP expired. Please request a new one.', 'err');
+    }
+  }, 1000);
+
+  // ── Resend OTP ─────────────────────────────────
+  async function resendOtp() {
+    resendBtn.disabled = true;
+    resendBtn.textContent = 'Sending…';
+
+    try {
+      const res  = await fetch('/resend-otp', { method: 'POST' });
+      const data = await res.json();
+
+      if (data.ok) {
+        showToast(data.msg, 'ok');
+
+        // Reset timer
+        seconds = 600;
+        timerEl.style.color = 'var(--gold)';
+
+        // Clear input boxes
+        digits.forEach(d => d.value = '');
+        digits[0].focus();
+        updateHidden();
+
+        // Disable resend for 30 seconds
+        setTimeout(() => {
+          resendBtn.disabled = false;
+          resendBtn.textContent = 'Resend code';
+        }, 30000);
+
+      } else {
+        showToast(data.msg, 'err');
+        resendBtn.disabled = false;
+        resendBtn.textContent = 'Resend code';
+      }
+    } catch {
+      showToast('Network error', 'err');
+      resendBtn.disabled = false;
+      resendBtn.textContent = 'Resend code';
+    }
+  }
+</script>
+{% endblock %}

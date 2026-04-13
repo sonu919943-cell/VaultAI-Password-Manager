@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block title %}Register — VaultAI{% endblock %}
+
+{% block extra_css %}
+<style>
+  .register-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .register-box {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .top-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  .top-logo-icon {
+    width: 44px; height: 44px;
+    border: 1px solid var(--line-md);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 12px;
+  }
+  .top-logo h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+  .top-logo p { color: var(--text-3); font-size: 14px; }
+
+  .form-group { margin-bottom: 16px; }
+
+  .two-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .input-wrap { position: relative; }
+  .input-wrap .field { padding-right: 44px; }
+  .eye-btn {
+    position: absolute; right: 10px; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; color: var(--text-3);
+  }
+
+  /* Strength bar */
+  .strength-bar-wrap { margin-top: 8px; }
+  .strength-segments {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  .strength-seg {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line);
+    transition: background 0.3s;
+  }
+  .strength-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-3);
+  }
+
+  .notice {
+    background: rgba(232,168,32,0.06);
+    border: 1px solid rgba(232,168,32,0.15);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  .divider {
+    margin: 20px 0;
+    border: none;
+    border-top: 1px solid var(--line);
+  }
+  .link { color: var(--gold); text-decoration: none; font-weight: 500; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-page">
+  <div class="register-box">
+
+    <div class="top-logo">
+      <a href="/" style="text-decoration:none" class="top-logo-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8a820" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </a>
+      <h1>Create your vault</h1>
+      <p>Your master password encrypts everything — it's never stored</p>
+    </div>
+
+    <div class="card" style="padding:24px">
+      <form method="POST" action="/register" id="regForm">
+
+        <div class="two-cols">
+          <div class="form-group">
+            <label class="label">Username</label>
+            <input type="text" name="username" class="field" placeholder="johndoe" required minlength="3" />
+          </div>
+          <div class="form-group">
+            <label class="label">Email</label>
+            <input type="email" name="email" class="field" placeholder="you@example.com" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Master Password</label>
+          <div class="input-wrap">
+            <input type="password" name="password" id="regPwd" class="field"
+                   placeholder="Create a strong password"
+                   required minlength="8"
+                   oninput="updateStrengthBar(this.value)" />
+            <button type="button" class="eye-btn" onclick="togglePassword('regPwd')">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Live strength bar -->
+          <div class="strength-bar-wrap">
+            <div class="strength-segments">
+              <div class="strength-seg" id="seg1"></div>
+              <div class="strength-seg" id="seg2"></div>
+              <div class="strength-seg" id="seg3"></div>
+              <div class="strength-seg" id="seg4"></div>
+            </div>
+            <div class="strength-info">
+              <span id="strengthLabel"></span>
+              <span id="strengthTip"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Confirm Password</label>
+          <input type="password" name="confirm" id="confirmPwd" class="field"
+                 placeholder="Repeat master password"
+                 required oninput="checkMatch()" />
+        </div>
+
+        <div class="notice">
+          ⚠️ Your master password is used to <strong style="color:var(--text)">derive an encryption key locally</strong>.
+          If you forget it, your data cannot be recovered — by design.
+        </div>
+
+        <button type="submit" class="btn btn-gold" style="width:100%;padding:12px;font-size:15px;justify-content:center">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Create vault
+        </button>
+
+      </form>
+
+      <hr class="divider" />
+      <p style="text-align:center;font-size:14px;color:var(--text-3)">
+        Already have an account? <a href="/login" class="link">Sign in →</a>
+      </p>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const COLORS = ['#d4695a', '#d49a3a', '#d49a3a', '#6db98c', '#e8a820'];
+  const LABELS = ['Very Weak', 'Weak', 'Fair', 'Strong', 'Excellent'];
+
+  function simpleScore(p) {
+    if (!p) return 0;
+    let s = 0;
+    if (p.length >= 8)  s++;
+    if (p.length >= 12) s++;
+    if (/[A-Z]/.test(p) && /[a-z]/.test(p)) s++;
+    if (/\d/.test(p)) s++;
+    if (/[^a-zA-Z0-9]/.test(p)) s++;
+    return Math.min(s, 4);
+  }
+
+  function updateStrengthBar(password) {
+    const score = simpleScore(password);
+    const color = COLORS[score];
+
+    // Fill segments based on score
+    for (let i = 1; i <= 4; i++) {
+      const seg = document.getElementById('seg' + i);
+      seg.style.background = (i <= score) ? color : 'var(--line)';
+    }
+
+    // Update label
+    const lbl = document.getElementById('strengthLabel');
+    lbl.textContent = password ? LABELS[score] : '';
+    lbl.style.color = color;
+
+    // Tips
+    const tips = [];
+    if (password.length < 12) tips.push('need 12+ chars');
+    if (!/[A-Z]/.test(password)) tips.push('uppercase');
+    if (!/\d/.test(password)) tips.push('numbers');
+    if (!/[^a-zA-Z0-9]/.test(password)) tips.push('symbols');
+    document.getElementById('strengthTip').textContent = tips.length ? 'Add: ' + tips.join(', ') : '';
+  }
+
+  function checkMatch() {
+    const a = document.getElementById('regPwd').value;
+    const b = document.getElementById('confirmPwd').value;
+    const field = document.getElementById('confirmPwd');
+    field.style.borderColor = (b && a !== b) ? 'var(--red)' : 'var(--line)';
+  }
+
+  document.getElementById('regForm').addEventListener('submit', function(e) {
+    const a = document.getElementById('regPwd').value;
+    const b = document.getElementById('confirmPwd').value;
+    if (a !== b) {
+      e.preventDefault();
+      showToast("Passwords don't match!", 'err');
+    }
+  });
+</script>
+{% endblock %}

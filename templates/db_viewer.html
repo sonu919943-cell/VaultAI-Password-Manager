@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+{% block title %}Database Viewer — VaultAI{% endblock %}
+
+{% block extra_css %}
+<style>
+  .db-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  .db-header {
+    margin-bottom: 40px;
+  }
+
+  .db-title {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+
+  .db-subtitle {
+    color: var(--text-3);
+    font-size: 14px;
+  }
+
+  .db-section {
+    margin-bottom: 48px;
+  }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .section-label h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 400;
+  }
+
+  .row-count {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: rgba(232,168,32,0.12);
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Table */
+  .db-table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead {
+    background: var(--inset);
+    border-bottom: 1px solid var(--line-md);
+  }
+
+  th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    color: var(--text-2);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* Column highlights */
+  .col-id       { color: var(--gold); }
+  .col-name     { color: var(--text); font-weight: 500; font-family: 'DM Sans', sans-serif; }
+  .col-email    { color: var(--blue); }
+  .col-hash     { color: var(--text-3); font-size: 11px; }
+  .col-enc      { color: var(--text-3); font-size: 11px; }
+  .col-strength { font-weight: 700; }
+  .col-site     { color: var(--text); font-family: 'DM Sans', sans-serif; }
+
+  /* Strength badge */
+  .badge-str {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* Security note */
+  .security-note {
+    display: flex;
+    gap: 12px;
+    align-items: start;
+    background: rgba(232,168,32,0.05);
+    border: 1px solid rgba(232,168,32,0.15);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 36px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-2);
+  }
+
+  .empty-row td {
+    text-align: center;
+    padding: 32px;
+    color: var(--text-3);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* Back button */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 24px;
+    color: var(--text-3);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.15s;
+  }
+  .back-btn:hover { color: var(--gold); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="db-page">
+
+  <a href="/dashboard" class="back-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to dashboard
+  </a>
+
+  <div class="db-header">
+    <h1 class="db-title">🗄️ Database Viewer</h1>
+    <p class="db-subtitle">Live view of all tables in <strong style="color:var(--text);font-family:'DM Mono',monospace">vault.db</strong> (SQLite)</p>
+  </div>
+
+  <!-- Security explanation -->
+  <div class="security-note">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" style="flex-shrink:0;margin-top:1px">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+    <div>
+      <strong style="color:var(--text)">Zero-Knowledge Security in action:</strong>
+      Passwords and usernames are stored as encrypted ciphertext — even if someone steals the database file,
+      they cannot read any passwords without the user's master password.
+      The bcrypt hash in the Users table is a one-way hash — the real password is never stored.
+    </div>
+  </div>
+
+  <!-- ── USERS TABLE ── -->
+  <div class="db-section">
+    <div class="section-label">
+      <h2>👤 Users Table</h2>
+      <span class="row-count">{{ users|length }} rows</span>
+    </div>
+
+    <div class="db-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Password (bcrypt hash)</th>
+            <th>Salt</th>
+            <th>OTP Code</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if users %}
+            {% for u in users %}
+            <tr>
+              <td class="col-id">{{ u.id }}</td>
+              <td class="col-name">{{ u.username }}</td>
+              <td class="col-email">{{ u.email }}</td>
+              <td class="col-hash">{{ u.password }}</td>
+              <td class="col-hash">{{ u.salt }}</td>
+              <td>
+                {% if u.otp_code == 'None' %}
+                  <span style="color:var(--text-3)">—</span>
+                {% else %}
+                  <span style="color:var(--amber)">{{ u.otp_code }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr class="empty-row"><td colspan="6">No users yet</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── PASSWORDS TABLE ── -->
+  <div class="db-section">
+    <div class="section-label">
+      <h2>🔑 Passwords Table</h2>
+      <span class="row-count">{{ passwords|length }} rows</span>
+    </div>
+
+    <div class="db-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User ID</th>
+            <th>Site Name</th>
+            <th>Username (encrypted)</th>
+            <th>Password (encrypted)</th>
+            <th>Category</th>
+            <th>Strength</th>
+            <th>Favorite</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if passwords %}
+            {% set str_colors = ['#d4695a','#d49a3a','#d49a3a','#6db98c','#e8a820'] %}
+            {% set str_labels = ['Very Weak','Weak','Fair','Strong','Excellent'] %}
+            {% for p in passwords %}
+            <tr>
+              <td class="col-id">{{ p.id }}</td>
+              <td style="color:var(--text-3)">{{ p.user_id }}</td>
+              <td class="col-site">{{ p.site_name }}</td>
+              <td class="col-enc">{{ p.username }}</td>
+              <td class="col-enc">{{ p.password }}</td>
+              <td style="color:var(--text-2);font-family:'DM Sans',sans-serif">{{ p.category }}</td>
+              <td>
+                <span class="badge-str"
+                      style="background:{{ str_colors[p.strength] }}18;
+                             color:{{ str_colors[p.strength] }};
+                             border:1px solid {{ str_colors[p.strength] }}33">
+                  {{ str_labels[p.strength] }}
+                </span>
+              </td>
+              <td>
+                {% if p.is_favorite %}
+                  <span style="color:var(--gold)">★ Yes</span>
+                {% else %}
+                  <span style="color:var(--text-3)">No</span>
+                {% endif %}
+              </td>
+              <td style="color:var(--text-3)">{{ p.created_at }}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr class="empty-row"><td colspan="9">No passwords saved yet</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── NOTES TABLE ── -->
+  <div class="db-section">
+    <div class="section-label">
+      <h2>📝 Notes Table</h2>
+      <span class="row-count">{{ notes|length }} rows</span>
+    </div>
+
+    <div class="db-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User ID</th>
+            <th>Title</th>
+            <th>Content (encrypted)</th>
+            <th>Color</th>
+            <th>Created</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if notes %}
+            {% for n in notes %}
+            <tr>
+              <td class="col-id">{{ n.id }}</td>
+              <td style="color:var(--text-3)">{{ n.user_id }}</td>
+              <td class="col-site">{{ n.title }}</td>
+              <td class="col-enc">{{ n.content }}</td>
+              <td>
+                <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);font-family:'DM Sans',sans-serif">
+                  <span style="width:10px;height:10px;border-radius:50%;display:inline-block;
+                    background:{{ {'yellow':'#c48c14','green':'#3a7a5c','blue':'#2a5a7a','red':'#7a2a2a','purple':'#5a2a7a','gray':'#444'}.get(n.color,'#c48c14') }}">
+                  </span>
+                  {{ n.color }}
+                </span>
+              </td>
+              <td style="color:var(--text-3)">{{ n.created_at }}</td>
+              <td style="color:var(--text-3)">{{ n.updated_at }}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr class="empty-row"><td colspan="7">No notes yet</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div style="background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px 24px">
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text-2)">📚 What each column means</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;color:var(--text-3);line-height:1.7">
+      <div><strong style="color:var(--text-2)">bcrypt hash</strong> — one-way hashed password, cannot be reversed</div>
+      <div><strong style="color:var(--text-2)">salt</strong> — random bytes used to make the encryption key</div>
+      <div><strong style="color:var(--text-2)">encrypted username/password</strong> — AES-256 Fernet ciphertext</div>
+      <div><strong style="color:var(--text-2)">note content (encrypted)</strong> — notes are also encrypted, titles are plain</div>
+      <div><strong style="color:var(--text-2)">strength</strong> — 0 (very weak) to 4 (excellent)</div>
+      <div><strong style="color:var(--text-2)">otp_code</strong> — temporary 6-digit code, cleared after login</div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

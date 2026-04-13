@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block title %}Login — VaultAI{% endblock %}
+
+{% block extra_css %}
+<style>
+  .login-page {
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* Left panel */
+  .login-left {
+    width: 380px;
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 48px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    border: 1px solid var(--line-md);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-name {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    color: var(--text);
+  }
+
+  .tagline {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+  .tagline em { color: var(--gold); font-style: italic; }
+
+  .tagline-sub {
+    color: var(--text-2);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .feature-icon {
+    width: 32px; height: 32px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .feature-title { font-size: 13px; font-weight: 600; }
+  .feature-desc  { font-size: 12px; color: var(--text-3); }
+
+  /* Right panel (form) */
+  .login-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+
+  .login-form-wrap { width: 100%; max-width: 380px; }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 30px;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    color: var(--text-3);
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+
+  .form-group { margin-bottom: 18px; }
+
+  .input-wrap { position: relative; }
+  .input-wrap .field { padding-right: 44px; }
+  .eye-btn {
+    position: absolute;
+    right: 10px; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none;
+    cursor: pointer; color: var(--text-3);
+  }
+
+  .divider {
+    margin: 24px 0;
+    border: none;
+    border-top: 1px solid var(--line);
+  }
+
+  .link { color: var(--gold); text-decoration: none; font-weight: 500; }
+  .link:hover { text-decoration: underline; }
+
+  @media (max-width: 700px) {
+    .login-left { display: none; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-page">
+
+  <!-- Left: branding -->
+  <div class="login-left">
+    <div>
+      <div class="logo">
+        <div class="logo-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8a820" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <span class="logo-name">VaultAI</span>
+      </div>
+
+      <h2 class="tagline">Your passwords,<br><em>encrypted.</em></h2>
+      <p class="tagline-sub">Zero-knowledge architecture means your master password never leaves your device — ever.</p>
+    </div>
+
+    <div>
+      <div class="feature-item">
+        <div class="feature-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e8a820" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="feature-title">AES-256 Fernet</p>
+          <p class="feature-desc">Industry-standard encryption</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e8a820" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div>
+          <p class="feature-title">PBKDF2 × 600K</p>
+          <p class="feature-desc">Key derivation, not storage</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e8a820" stroke-width="2">
+            <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="feature-title">AI Strength Engine</p>
+          <p class="feature-desc">Real-time breach detection</p>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)"></span>
+        <span style="font-size:12px;color:var(--text-3);font-family:'DM Mono',monospace">end-to-end encrypted</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: form -->
+  <div class="login-right">
+    <div class="login-form-wrap">
+
+      <h1>Welcome back</h1>
+      <p class="subtitle">Unlock your encrypted vault</p>
+
+      <form method="POST" action="/login">
+        <div class="form-group">
+          <label class="label">Username or Email</label>
+          <input type="text" name="identifier" class="field" placeholder="you@example.com" required />
+        </div>
+
+        <div class="form-group">
+          <label class="label">Master Password</label>
+          <div class="input-wrap">
+            <input type="password" name="password" id="loginPwd" class="field" placeholder="••••••••••••" required />
+            <button type="button" class="eye-btn" onclick="togglePassword('loginPwd')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-gold" style="width:100%;padding:12px;font-size:15px;justify-content:center">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Unlock vault
+        </button>
+
+        <!-- Forgot password -->
+        <div style="text-align:center;margin-top:14px">
+          <a href="/forgot-password"
+             style="font-size:13px;color:var(--text-3);text-decoration:none"
+             onmouseover="this.style.color='var(--gold)'"
+             onmouseout="this.style.color='var(--text-3)'">
+            Forgot master password?
+          </a>
+        </div>
+
+      </form>
+
+      <hr class="divider" />
+      <p style="text-align:center;font-size:14px;color:var(--text-3)">
+        No account? <a href="/register" class="link">Create your vault →</a>
+      </p>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

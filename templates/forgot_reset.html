@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Set New Password — VaultAI{% endblock %}
+
+{% block extra_css %}
+<style>
+  .page { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:40px 20px; }
+  .box  { width:100%; max-width:420px; }
+
+  .top-icon {
+    width:56px; height:56px;
+    border:1px solid rgba(109,185,140,0.3); background:rgba(109,185,140,0.06);
+    border-radius:14px; display:flex; align-items:center; justify-content:center;
+    margin:0 auto 20px;
+  }
+  h1 { font-family:'Fraunces',serif; font-size:24px; font-weight:400; text-align:center; margin-bottom:8px; }
+  .subtitle { text-align:center; color:var(--text-3); font-size:14px; line-height:1.6; margin-bottom:28px; }
+
+  .steps { display:flex; justify-content:center; gap:8px; margin-bottom:28px; }
+  .step { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; font-family:'DM Mono',monospace; }
+  .step.done   { background:rgba(109,185,140,0.2); color:var(--green); border:1px solid var(--green); }
+  .step.active { background:var(--green); color:#0d0b09; }
+  .step-line   { width:24px; height:1px; background:var(--line); align-self:center; }
+
+  .form-group  { margin-bottom:16px; }
+  .input-wrap  { position:relative; }
+  .input-wrap .field { padding-right:44px; }
+  .eye-btn {
+    position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer; color:var(--text-3);
+  }
+
+  /* Live strength bar */
+  .strength-segs { display:flex; gap:4px; margin-top:8px; margin-bottom:4px; }
+  .seg { flex:1; height:3px; border-radius:2px; background:var(--line); transition:background 0.3s; }
+  .strength-info { display:flex; justify-content:space-between; font-size:11px; color:var(--text-3); }
+
+  /* Final warning */
+  .final-warning {
+    background:rgba(212,105,90,0.06);
+    border:1px solid rgba(212,105,90,0.2);
+    border-radius:8px;
+    padding:12px 14px;
+    font-size:13px;
+    color:var(--text-2);
+    line-height:1.5;
+    margin-bottom:16px;
+  }
+  .final-warning strong { color:var(--red); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <div class="box">
+
+    <div class="top-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6db98c" stroke-width="1.8">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <path d="M9 12l2 2 4-4"/>
+      </svg>
+    </div>
+
+    <h1>Set New Password</h1>
+    <p class="subtitle">Almost done! Create your new master password below.</p>
+
+    <!-- Step indicator -->
+    <div class="steps">
+      <div class="step done">✓</div>
+      <div class="step-line"></div>
+      <div class="step done">✓</div>
+      <div class="step-line"></div>
+      <div class="step active">3</div>
+    </div>
+
+    <div class="card" style="padding:24px">
+      <form method="POST" action="/forgot-reset" id="resetForm">
+
+        <!-- Final warning -->
+        <div class="final-warning">
+          🗑️ <strong>All saved passwords and notes will be deleted</strong> when you submit.
+          They were encrypted with your old password and cannot be recovered.
+        </div>
+
+        <div class="form-group">
+          <label class="label">New Master Password</label>
+          <div class="input-wrap">
+            <input type="password" name="password" id="newPwd" class="field"
+                   placeholder="Create a strong new password"
+                   required minlength="8"
+                   oninput="liveStrength(this.value)" />
+            <button type="button" class="eye-btn" onclick="togglePassword('newPwd')">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+
+          <!-- Strength bar -->
+          <div class="strength-segs">
+            <div class="seg" id="ns1"></div>
+            <div class="seg" id="ns2"></div>
+            <div class="seg" id="ns3"></div>
+            <div class="seg" id="ns4"></div>
+          </div>
+          <div class="strength-info">
+            <span id="nStrLabel"></span>
+            <span id="nStrTip"></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Confirm New Password</label>
+          <div class="input-wrap">
+            <input type="password" name="confirm" id="confirmPwd" class="field"
+                   placeholder="Repeat new password"
+                   required oninput="checkMatch()" />
+            <span id="matchMark" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);display:none;color:var(--green)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <button type="submit" id="resetBtn" class="btn" style="width:100%;padding:11px;justify-content:center;background:var(--green);color:#0d0b09;font-weight:700;font-size:14px;border-radius:7px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span id="resetBtnTxt">Reset Master Password</span>
+        </button>
+
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const COLORS = ['#d4695a','#d49a3a','#d49a3a','#6db98c','#e8a820'];
+  const LABELS = ['Very Weak','Weak','Fair','Strong','Excellent'];
+
+  function simpleScore(p) {
+    if (!p) return 0;
+    let s = 0;
+    if (p.length >= 8)  s++;
+    if (p.length >= 12) s++;
+    if (/[A-Z]/.test(p) && /[a-z]/.test(p)) s++;
+    if (/\d/.test(p))   s++;
+    if (/[^a-zA-Z0-9]/.test(p)) s++;
+    return Math.min(s, 4);
+  }
+
+  function liveStrength(p) {
+    const sc  = simpleScore(p);
+    const col = COLORS[sc];
+
+    for (let i = 1; i <= 4; i++) {
+      document.getElementById('ns' + i).style.background = (i <= sc) ? col : 'var(--line)';
+    }
+
+    const lbl = document.getElementById('nStrLabel');
+    lbl.textContent = p ? LABELS[sc] : '';
+    lbl.style.color = col;
+
+    const tips = [];
+    if (p.length < 12)          tips.push('12+ chars');
+    if (!/[A-Z]/.test(p))       tips.push('uppercase');
+    if (!/\d/.test(p))          tips.push('numbers');
+    if (!/[^a-zA-Z0-9]/.test(p)) tips.push('symbols');
+    document.getElementById('nStrTip').textContent = tips.length ? 'Need: ' + tips.join(', ') : '';
+  }
+
+  function checkMatch() {
+    const a = document.getElementById('newPwd').value;
+    const b = document.getElementById('confirmPwd').value;
+    document.getElementById('matchMark').style.display = (b && a === b) ? 'block' : 'none';
+    document.getElementById('confirmPwd').style.borderColor = (b && a !== b) ? 'var(--red)' : '';
+  }
+
+  document.getElementById('resetForm').addEventListener('submit', function (e) {
+    const a = document.getElementById('newPwd').value;
+    const b = document.getElementById('confirmPwd').value;
+    if (a !== b) {
+      e.preventDefault();
+      showToast("Passwords don't match!", 'err');
+      return;
+    }
+    if (simpleScore(a) < 2) {
+      e.preventDefault();
+      showToast('Password is too weak!', 'err');
+      return;
+    }
+    // Final confirmation — user must confirm data deletion
+    if (!confirm('⚠️ Are you sure?\n\nAll your saved passwords and notes will be permanently deleted. This CANNOT be undone.\n\nClick OK to continue.')) {
+      e.preventDefault();
+      return;
+    }
+    document.getElementById('resetBtn').disabled = true;
+    document.getElementById('resetBtnTxt').textContent = 'Resetting…';
+  });
+</script>
+{% endblock %}
