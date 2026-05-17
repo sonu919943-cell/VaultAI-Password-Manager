@@ -20,9 +20,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)
 
 # ── Flask-Mail setup (Gmail) ───────────────────────
-app.config['MAIL_SERVER']   = 'smtp.gmail.com'
-app.config['MAIL_PORT']     = 587
-app.config['MAIL_USE_TLS']  = True
+app.config['MAIL_SERVER']        = 'smtp.gmail.com'
+app.config['MAIL_PORT']          = 587
+app.config['MAIL_USE_TLS']       = True
+app.config['MAIL_USE_SSL']       = False
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_EMAIL')
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_EMAIL')     # your gmail
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')  # your app password
 
@@ -831,4 +833,3 @@ with app.app_context():
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     app.run(debug=False, host='0.0.0.0', port=port)
-    
