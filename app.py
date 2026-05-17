@@ -110,6 +110,9 @@ def send_otp_email(to_email, otp_code, username):
 
     </div>
     """
+    print("MAIL USER:", os.getenv('MAIL_EMAIL'))
+    print("MAIL PASS:", os.getenv('MAIL_PASSWORD'))
+
     mail.send(msg)
 
 def send_reset_email(to_email, reset_code, username):
