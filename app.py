@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives import hashes
 from dotenv import load_dotenv
 from models import db, User, Password, Note
 import os, base64, secrets, string, re
+import requests
 import socket
 
 socket.setdefaulttimeout(10)
@@ -113,7 +114,35 @@ def send_otp_email(to_email, otp_code, username):
     print("MAIL USER:", os.getenv('MAIL_EMAIL'))
     print("MAIL PASS:", os.getenv('MAIL_PASSWORD'))
 
-    mail.send(msg)
+    headers = {
+    "accept": "application/json",
+    "api-key": os.getenv("BREVO_API_KEY"),
+    "content-type": "application/json"
+}
+
+data = {
+    "sender": {
+        "name": "VaultAI",
+        "email": os.getenv("MAIL_EMAIL")
+    },
+    "to": [
+        {
+            "email": to_email
+        }
+    ],
+    "subject": "VaultAI - Your Login Code",
+    "htmlContent": msg.html
+}
+
+response = requests.post(
+    "https://api.brevo.com/v3/smtp/email",
+    json=data,
+    headers=headers,
+    timeout=10
+)
+
+print(response.status_code)
+print(response.text)
 
 def send_reset_email(to_email, reset_code, username):
     """Send the password reset code to the user's email"""
