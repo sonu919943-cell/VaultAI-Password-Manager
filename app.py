@@ -7,6 +7,10 @@ from cryptography.hazmat.primitives import hashes
 from dotenv import load_dotenv
 from models import db, User, Password, Note
 import os, base64, secrets, string, re
+import socket
+
+socket.setdefaulttimeout(10)
+
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -27,6 +31,7 @@ app.config['MAIL_USE_SSL']       = False
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_EMAIL')
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_EMAIL')     # your gmail
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')  # your app password
+app.config['MAIL_TIMEOUT'] = 10
 
 db.init_app(app)
 bcrypt = Bcrypt(app)
