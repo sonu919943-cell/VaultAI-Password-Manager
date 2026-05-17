@@ -24,7 +24,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)
 
 # ── Flask-Mail setup (Gmail) ───────────────────────
-app.config['MAIL_SERVER']        = 'smtp.gmail.com'
+app.config['MAIL_SERVER']        = 'smtp-relay.brevo.com'
 app.config['MAIL_PORT']          = 587
 app.config['MAIL_USE_TLS']       = True
 app.config['MAIL_USE_SSL']       = False
