@@ -7,11 +7,6 @@ from cryptography.hazmat.primitives import hashes
 from dotenv import load_dotenv
 from models import db, User, Password, Note
 import os, base64, secrets, string, re
-import requests
-import socket
-
-socket.setdefaulttimeout(10)
-
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -25,14 +20,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)
 
 # ── Flask-Mail setup (Gmail) ───────────────────────
-app.config['MAIL_SERVER']        = 'smtp-relay.brevo.com'
-app.config['MAIL_PORT']          = 587
-app.config['MAIL_USE_TLS']       = True
-app.config['MAIL_USE_SSL']       = False
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_EMAIL')
+app.config['MAIL_SERVER']   = 'smtp.gmail.com'
+app.config['MAIL_PORT']     = 587
+app.config['MAIL_USE_TLS']  = True
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_EMAIL')     # your gmail
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')  # your app password
-app.config['MAIL_TIMEOUT'] = 10
 
 db.init_app(app)
 bcrypt = Bcrypt(app)
@@ -111,38 +103,7 @@ def send_otp_email(to_email, otp_code, username):
 
     </div>
     """
-    print("MAIL USER:", os.getenv('MAIL_EMAIL'))
-    print("MAIL PASS:", os.getenv('MAIL_PASSWORD'))
-
-    headers = {
-    "accept": "application/json",
-    "api-key": os.getenv("BREVO_API_KEY"),
-    "content-type": "application/json"
-}
-
-data = {
-    "sender": {
-        "name": "VaultAI",
-        "email": os.getenv("MAIL_EMAIL")
-    },
-    "to": [
-        {
-            "email": to_email
-        }
-    ],
-    "subject": "VaultAI - Your Login Code",
-    "htmlContent": msg.html
-}
-
-response = requests.post(
-    "https://api.brevo.com/v3/smtp/email",
-    json=data,
-    headers=headers,
-    timeout=10
-)
-
-print(response.status_code)
-print(response.text)
+    mail.send(msg)
 
 def send_reset_email(to_email, reset_code, username):
     """Send the password reset code to the user's email"""
@@ -863,10 +824,11 @@ def db_viewer():
                            notes=note_rows)
 
 
-# Creates DB tables when Render starts the app
+# ── Create DB tables on startup ────────────────────
 with app.app_context():
     db.create_all()
 
+# ── Run app ────────────────────────────────────────
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     app.run(debug=False, host='0.0.0.0', port=port)
